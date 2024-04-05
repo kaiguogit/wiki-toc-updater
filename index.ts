@@ -9,7 +9,8 @@ interface Options {
   directory: string;
 }
 class DocFolder {
-  files: Map<string, DocFile>;
+  docFiles: Map<string, DocFile>;
+  homeFiles: Map<string, DocFile>;
   folders: Map<string, DocFolder>;
   name: string;
   displayName: string;
@@ -25,8 +26,22 @@ class DocFolder {
   }) {
     this.name = name;
     this.displayName = toSpaceSeparated(name);
-    this.files = files;
     this.folders = folders;
+    const homeFiles: Map<string, DocFile> = new Map();
+    for (const folderName of folders.keys()) {
+        const homeFileName =  `${folderName}.md`
+        const homeFile =  files.get(homeFileName)
+        if (homeFile) {
+            homeFiles.set(folderName, homeFile);
+            files.delete(homeFileName);
+        }
+    }
+    this.docFiles = files;
+    this.homeFiles = homeFiles;
+  }
+
+  getMarkDownLink() {
+    return `# [${this.displayName}](${this.name})`;
   }
 }
 
@@ -38,7 +53,7 @@ class DocFile {
   constructor({ fileName, link }: { fileName: string; link: string }) {
     this.baseName = basename(fileName);
     this.fileName = fileName;
-    this.link = link;
+    this.link = link.replace(/\.md$/, '');
     this.displayName = toSpaceSeparated(fileName);
   }
 }
@@ -53,7 +68,7 @@ const findDocFiles = async (
   for (const name of fileAndFolders) {
     try {
       const fileStat = await stat(join(dir, name));
-      if (fileStat.isFile()) {
+      if (fileStat.isFile() && name.endsWith('.md')) {
         docFiles.set(
           name,
           new DocFile({
@@ -74,10 +89,15 @@ const findDocFiles = async (
 };
 const updateHomeFiles = async (
   homeFile: string,
-  files: DocFile[],
-  folders: DocFolder[]
+  folder: DocFolder,
 ): Promise<void> => {
   if (await stat(homeFile)) {
+      const lines: string[] = [];
+      for (const file of folder.docFiles.values()) {
+        const content = (await readFile(homeFile)).toString();
+
+      }
+      lines.push(folder.getMarkDownLink());
     const content = (await readFile(homeFile)).toString();
     const lines = content.split('\n');
     lines.splice(1, 0, args.data);
