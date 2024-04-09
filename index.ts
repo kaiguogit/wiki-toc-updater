@@ -3,7 +3,7 @@ import yargs, { ArgumentsCamelCase, Argv } from 'yargs';
 import { readdir, stat, writeFile } from 'fs/promises';
 import { basename, join } from 'path';
 import { toSpaceSeparated } from './utils/to-space-separated';
-const EXCLUDED_FOLDERS = ['uploads'];
+const EXCLUDED_FOLDERS = ['uploads', 'wiki-tool'];
 const EXCLUDED_FILES = ['Home.md'];
 interface Options {
   directory: string;
